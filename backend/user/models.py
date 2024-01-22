@@ -88,7 +88,7 @@ class Subscription(models.Model):
                 fields=['user', 'author'],
                 name='user_author_unique'
             )
-        ]    
+        ]
 
     def __str__(self):
         return f'Пользователь {self.user} подписался на {self.author}'

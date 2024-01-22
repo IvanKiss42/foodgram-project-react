@@ -3,7 +3,6 @@ from django.http import HttpResponse
 from rest_framework.decorators import api_view
 from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework.response import Response
-from rest_framework.pagination import PageNumberPagination
 from rest_framework.views import APIView
 from rest_framework.generics import ListAPIView
 from rest_framework import permissions, status, viewsets
@@ -100,7 +99,7 @@ class UsersView(viewsets.ModelViewSet):
 
     @action(
             detail=False,
-            methods=['post',],
+            methods=['post', ],
             url_path='set_password',
             url_name='set_password',
             permission_classes=(permissions.IsAuthenticated,)
@@ -261,7 +260,7 @@ class FavoriteView(APIView):
 
 
 class ShoppingCartView(APIView):
-    """ Добавление рецепта в корзину или его удаление. """
+    """Добавление рецепта в корзину или его удаление."""
 
     permission_classes = (permissions.IsAuthenticated,)
 
