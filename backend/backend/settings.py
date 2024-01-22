@@ -17,14 +17,9 @@ DEBUG = True
 
 ALLOWED_HOSTS = ['localhost', '127.0.0.1', '158.160.5.135']
 
-AUTH_USER_MODEL = 'user.User'
-
 # Application definition
 
 INSTALLED_APPS = [
-    'api.apps.ApiConfig',
-    'user.apps.UserConfig',
-    'menu.apps.MenuConfig',
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
@@ -33,6 +28,10 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     'rest_framework',
     'rest_framework.authtoken',
+    'django_filters',
+    'menu.apps.MenuConfig',
+    'user.apps.UserConfig',
+    'api.apps.ApiConfig',
     'djoser',
 ]
 
@@ -85,8 +84,11 @@ REST_FRAMEWORK = {
     'DEFAULT_AUTHENTICATION_CLASSES': [
         'rest_framework.authentication.TokenAuthentication',
     ],
-    'DEFAULT_PAGINATION_CLASS': 'rest_framework.pagination.PageNumberPagination',
-    'PAGE_SIZE': 10,
+    'DEFAULT_PAGINATION_CLASS': 'rest_framework.pagination.LimitOffsetPagination',
+    'PAGE_SIZE': 6,
+    'DEFAULT_FILTER_BACKENDS': [
+        'django_filters.rest_framework.DjangoFilterBackend'
+    ],
 }
 
 
@@ -111,6 +113,7 @@ AUTH_PASSWORD_VALIDATORS = [
     },
 ]
 
+AUTH_USER_MODEL = 'user.User'
 
 # Internationalization
 # https://docs.djangoproject.com/en/3.2/topics/i18n/

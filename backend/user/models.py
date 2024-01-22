@@ -1,8 +1,7 @@
 from django.contrib.auth.models import AbstractUser
 from django.core.validators import RegexValidator
 from django.db import models
-
-from menu.models import Resipe
+from django.db.models import UniqueConstraint
 
 
 class User(AbstractUser):
@@ -21,19 +20,13 @@ class User(AbstractUser):
         verbose_name='Уникальный юзернейм',
         help_text='Укажите юзернейм',
         unique=True,
-        validators=([RegexValidator(regex=r'^[\w.@+-]+\z')])
+        validators=([RegexValidator(regex=r'^[\w.@+-]+\Z')])
     )
     email = models.EmailField(
         max_length=254,
         verbose_name='Адрес электронной почты',
         help_text='Укажите e-mail',
         unique=True
-    )
-    confirmation_code = models.CharField(
-        max_length=40,
-        blank=True,
-        null=True,
-        verbose_name='Проверочный код'
     )
     first_name = models.CharField(
         max_length=150,
@@ -71,9 +64,31 @@ class User(AbstractUser):
         return self.username
 
 
-class Favorite(models.Model):
-    user = models.ForeignKey(User, on_delete=models.CASCADE)
-    resipe = models.ForeignKey(Resipe, on_delete=models.CASCADE)
+class Subscription(models.Model):
+    """Модель подписок."""
+
+    user = models.ForeignKey(
+        User,
+        related_name='follower',
+        on_delete=models.CASCADE,
+        verbose_name='Подписчик'
+    )
+    author = models.ForeignKey(
+        User,
+        related_name='author',
+        on_delete=models.CASCADE,
+        verbose_name='Автор'
+    )
 
     class Meta:
-        unique_together = ('user', 'resipe')
+        verbose_name = 'Подписка'
+        verbose_name_plural = 'Подписки'
+        constraints = [
+            UniqueConstraint(
+                fields=['user', 'author'],
+                name='user_author_unique'
+            )
+        ]    
+
+    def __str__(self):
+        return f'Пользователь {self.user} подписался на {self.author}'
