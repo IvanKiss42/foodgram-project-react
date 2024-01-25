@@ -14,19 +14,17 @@ from django.db import IntegrityError
 from rest_framework.authtoken.models import Token
 
 from .permissions import IsAuthorAdminSuperuserOrReadOnlyPermission
-from .serializers import (TokenSerializer, UserCreateSerializer,
-                          UsersSerializer, SetPasswordSerializer,
-                          SubscriptionSerializer, ShowSubscriptionsSerializer,
-                          RecipeSerializer, TagSerializer,
-                          IngredientSerialiser, ShoppingCartSerializer,
-                          CreateRecipeSerializer, FavoriteSerializer,
-                          RecipeIngredient,
-                          UserpresentationAfterCreateSerializer)
-from menu.models import (Recipe, Tag, Ingredient, Favorite,
-                         ShoppingCart)
+from .serializers import (
+    TokenSerializer, UserCreateSerializer, UsersSerializer,
+    SetPasswordSerializer, ShowSubscriptionsSerializer, SubscriptionSerializer,
+    RecipeSerializer, TagSerializer, IngredientSerialiser,
+    ShoppingCartSerializer, CreateRecipeSerializer, FavoriteSerializer,
+    RecipeIngredient, UserPresentationAfterCreateSerializer
+)
+from menu.models import Recipe, Tag, Ingredient, Favorite, ShoppingCart
 from user.models import User, Subscription
 from .filters import IngredientFilter, RecipeFilter
-from .pagination import LimitPagination, SubscriptionLimitPagination
+from .pagination import LimitPagination
 
 
 class UsersView(viewsets.ModelViewSet):
@@ -76,7 +74,7 @@ class UsersView(viewsets.ModelViewSet):
 
             return Response(error_response, status=status.HTTP_400_BAD_REQUEST)
         user.save()
-        serializer_for_response = UserpresentationAfterCreateSerializer(user)
+        serializer_for_response = UserPresentationAfterCreateSerializer(user)
         return Response(serializer_for_response.data,
                         status=status.HTTP_201_CREATED)
 
@@ -140,10 +138,10 @@ class TokenLoginView(viewsets.ModelViewSet):
 
 
 class SubscribeView(APIView):
-    """Операция подписки и отписки."""
+    """ViewSet для создания и удаления подписок."""
 
     permission_classes = (permissions.IsAuthenticated,)
-    pagination_class = SubscriptionLimitPagination
+    pagination_class = LimitOffsetPagination
 
     def post(self, request, id):
         data = {
@@ -172,22 +170,23 @@ class SubscribeView(APIView):
 
 
 class ShowSubscriptionsView(ListAPIView):
-    """ Отображение подписок."""
+    """ViewSet для отображения подписок."""
 
     permission_classes = (permissions.IsAuthenticated,)
-    pagination_class = SubscriptionLimitPagination
+    pagination_class = LimitOffsetPagination
 
     def get(self, request):
         user = request.user
         queryset = User.objects.filter(author__user=user)
+        page = self.paginate_queryset(queryset)
         serializer = ShowSubscriptionsSerializer(
-            queryset, many=True, context={'request': request}
+            page, many=True, context={'request': request}
         )
-        return Response(serializer.data, status=status.HTTP_200_OK)
+        return self.get_paginated_response(serializer.data)
 
 
 class RecipeView(viewsets.ModelViewSet):
-    """Отображение рецептов и действия с ними."""
+    """View для отображение рецептов и действия с ними."""
 
     permission_classes = (IsAuthorAdminSuperuserOrReadOnlyPermission, )
     queryset = Recipe.objects.all()
@@ -208,7 +207,7 @@ class RecipeView(viewsets.ModelViewSet):
 
 
 class TagView(viewsets.ModelViewSet):
-    """Отображение тэгов."""
+    """View для отображение тэгов."""
 
     http_method_names = ('get', )
     permission_classes = (permissions.AllowAny,)
@@ -218,7 +217,7 @@ class TagView(viewsets.ModelViewSet):
 
 
 class IngredientView(viewsets.ModelViewSet):
-    """Отображение ингридиентов."""
+    """View для отображение ингридиентов."""
 
     http_method_names = ('get', )
     permission_classes = (permissions.AllowAny,)
@@ -230,7 +229,7 @@ class IngredientView(viewsets.ModelViewSet):
 
 
 class FavoriteView(APIView):
-    """ Добавление/удаление рецепта из избранного. """
+    """View для добавления и удаления рецепта из избранного."""
 
     permission_classes = (permissions.IsAuthenticated,)
 
@@ -260,7 +259,7 @@ class FavoriteView(APIView):
 
 
 class ShoppingCartView(APIView):
-    """Добавление рецепта в корзину или его удаление."""
+    """View для добавления рецепта в корзину или его удаление."""
 
     permission_classes = (permissions.IsAuthenticated,)
 

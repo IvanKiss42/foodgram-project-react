@@ -119,9 +119,7 @@ class Recipe(models.Model):
         max_length=255
     )
     image = models.ImageField(
-        upload_to='menu/recipes/',
-        null=True,
-        blank=True,
+        upload_to='recipes_images/',
         verbose_name='Изображение',
     )
     tags = models.ManyToManyField(
@@ -219,7 +217,7 @@ class ShoppingCart(models.Model):
 
 
 class Favorite(models.Model):
-    """ Модель избранного."""
+    """Модель избранного."""
 
     user = models.ForeignKey(
         User,

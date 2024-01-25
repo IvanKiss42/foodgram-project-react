@@ -10,6 +10,7 @@ from menu.models import (Recipe, Tag, Ingredient, Favorite,
 
 
 class Base64ImageField(serializers.ImageField):
+    """Поле для отображения картинки."""
     def to_internal_value(self, data):
         if isinstance(data, str) and data.startswith('data:image'):
             format, imgstr = data.split(';base64,')
@@ -54,8 +55,8 @@ class UserCreateSerializer(serializers.ModelSerializer):
         return value
 
 
-class UserpresentationAfterCreateSerializer(serializers.ModelSerializer):
-    """Сериализатор для создания пользователей."""
+class UserPresentationAfterCreateSerializer(serializers.ModelSerializer):
+    """Сериализатор для отображения создного пользователя."""
 
     class Meta:
         model = User
@@ -128,6 +129,9 @@ class ShowSubscriptionsSerializer(serializers.ModelSerializer):
         if not request or request.user.is_anonymous:
             return False
         recipes = Recipe.objects.filter(author=obj)
+        limit = request.query_params.get('recipes_limit')
+        if limit:
+            recipes = recipes[:int(limit)]
         return ShowFavoriteSerializer(
             recipes, many=True, context={'request': request}).data
 
@@ -136,7 +140,7 @@ class ShowSubscriptionsSerializer(serializers.ModelSerializer):
 
 
 class SubscriptionSerializer(serializers.ModelSerializer):
-    """Сериализатор подписок."""
+    """Сериализатор для подписок."""
 
     class Meta:
         model = Subscription
@@ -151,12 +155,11 @@ class SubscriptionSerializer(serializers.ModelSerializer):
     def to_representation(self, instance):
         return ShowSubscriptionsSerializer(
             instance.author,
-            context={
-                     'request': self.context.get('request')}
-        ).data
+            context={'request': self.context.get('request')}).data
 
 
 class TagSerializer(serializers.ModelSerializer):
+    """Сериализатор для тэгов."""
 
     class Meta:
         model = Tag
@@ -164,6 +167,7 @@ class TagSerializer(serializers.ModelSerializer):
 
 
 class IngredientSerialiser(serializers.ModelSerializer):
+    """Сериализатор для ингридиентов."""
 
     class Meta:
         model = Ingredient
@@ -171,7 +175,7 @@ class IngredientSerialiser(serializers.ModelSerializer):
 
 
 class RecipeIngredientSerializer(serializers.ModelSerializer):
-    """Сериализатор связывающий ингредиент и рецепт."""
+    """Сериализатор для связи ингредиента и рецепта."""
 
     id = serializers.ReadOnlyField(source='ingredient.id')
     name = serializers.ReadOnlyField(source='ingredient.name')
@@ -185,7 +189,7 @@ class RecipeIngredientSerializer(serializers.ModelSerializer):
 
 
 class RecipeSerializer(serializers.ModelSerializer):
-    """Сериализотор для просмотра рецепта."""
+    """Сериализотор для отображения рецепта."""
 
     tags = TagSerializer(many=True)
     author = UsersSerializer(read_only=True)
@@ -234,7 +238,7 @@ class AddIngredientToRecipeSerializer(serializers.ModelSerializer):
 
 
 class CreateRecipeSerializer(serializers.ModelSerializer):
-    """ Сериализатор создания/обновления рецепта. """
+    """ Сериализатор создания и обновления рецепта."""
 
     author = UsersSerializer(read_only=True)
     ingredients = AddIngredientToRecipeSerializer(many=True)
@@ -316,7 +320,7 @@ class ShowFavoriteSerializer(serializers.ModelSerializer):
 
 
 class FavoriteSerializer(serializers.ModelSerializer):
-    """ Сериализатор для изьранного."""
+    """ Сериализатор для избранного."""
 
     class Meta:
         model = Favorite
@@ -330,7 +334,7 @@ class FavoriteSerializer(serializers.ModelSerializer):
 
 
 class ShoppingCartSerializer(serializers.ModelSerializer):
-    """ Сериализатор для списка покупок. """
+    """ Сериализатор для списка покупок."""
 
     class Meta:
         model = ShoppingCart
