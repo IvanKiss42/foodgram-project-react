@@ -79,19 +79,11 @@ class UsersView(viewsets.ModelViewSet):
                         status=status.HTTP_201_CREATED)
 
     @action(detail=False,
-            methods=['get', 'patch'],
+            methods=['get', ],
             url_path='me',
             url_name='me',
             permission_classes=(permissions.IsAuthenticated,))
     def about_me(self, request):
-        if request.method == 'PATCH':
-            serializer = UsersSerializer(
-                request.user, data=request.data,
-                partial=True, context={'request': request}
-            )
-            serializer.is_valid(raise_exception=True)
-            serializer.save(role=request.user.role)
-            return Response(serializer.data, status=status.HTTP_200_OK)
         serializer = UsersSerializer(request.user)
         return Response(serializer.data, status=status.HTTP_200_OK)
 

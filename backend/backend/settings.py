@@ -1,5 +1,4 @@
 import os
-from datetime import timedelta
 from pathlib import Path
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
@@ -15,7 +14,8 @@ SECRET_KEY = 'django-insecure-6sc0w9b58cq=b*5+^sm9++%mljbao7os9vn95w-q_fs=b)ir4w
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = ['localhost', '127.0.0.1', '158.160.5.135']
+ALLOWED_HOSTS = ['localhost', '127.0.0.1',
+                 '158.160.5.135', 'foodgramproject.onthewifi.com']
 
 # Application definition
 
