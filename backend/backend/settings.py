@@ -69,8 +69,6 @@ WSGI_APPLICATION = 'backend.wsgi.application'
 # Database
 # https://docs.djangoproject.com/en/3.2/ref/settings/#databases
 
-"""
-For local use.
 
 DATABASES = {
     'default': {
@@ -90,7 +88,7 @@ DATABASES = {
         'PORT': os.getenv('DB_PORT', 5432)
     }
 }
-
+"""
 
 # Password validation
 # https://docs.djangoproject.com/en/3.2/ref/settings/#auth-password-validators

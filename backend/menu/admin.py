@@ -12,9 +12,9 @@ class RecipeAdmin(admin.ModelAdmin):
         'author',
         'favorites',
     )
-    search_fields = ('name', 'author', 'tags')
-    list_filter = ('name', 'author', 'tags')
-    list_editable = ('name', 'author', 'tags')
+    search_fields = ('name', 'author__username', 'tags')
+    list_filter = ('name', 'author__username', 'tags')
+    list_editable = ('name', )
     empty_value_display = '-пусто-'
 
     def favorites(self, obj):
@@ -28,7 +28,6 @@ class IngredientAdmin(admin.ModelAdmin):
     list_display = ('name', 'measurement_unit')
     search_fields = ('name',)
     list_filter = ('name',)
-    list_editable = ('name',)
     empty_value_display = '-пусто-'
 
 
