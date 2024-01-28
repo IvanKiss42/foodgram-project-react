@@ -78,21 +78,22 @@ class UsersView(viewsets.ModelViewSet):
         return Response(serializer_for_response.data,
                         status=status.HTTP_201_CREATED)
 
-    @action(detail=False,
-            methods=['get', ],
-            url_path='me',
-            url_name='me',
-            permission_classes=(permissions.IsAuthenticated,))
+    @action(
+        detail=False,
+        methods=['get', ],
+        url_path='me',
+        url_name='me',
+        permission_classes=(permissions.IsAuthenticated,))
     def about_me(self, request):
         serializer = UsersSerializer(request.user)
         return Response(serializer.data, status=status.HTTP_200_OK)
 
     @action(
-            detail=False,
-            methods=['post', ],
-            url_path='set_password',
-            url_name='set_password',
-            permission_classes=(permissions.IsAuthenticated,)
+        detail=False,
+        methods=['post', ],
+        url_path='set_password',
+        url_name='set_password',
+        permission_classes=(permissions.IsAuthenticated,)
     )
     def set_password(seld, request):
         serializer = SetPasswordSerializer(data=request.data)
