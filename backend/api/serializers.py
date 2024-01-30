@@ -43,12 +43,12 @@ class UserCreateSerializer(serializers.ModelSerializer):
                   'password')
 
     def validate_username(self, value):
-        if value == 'me':
+        if value.lower() == 'me':
             if self.instance and self.context['request'].method == 'PATCH':
                 raise serializers.ValidationError(
                     'Имя пользователя "me" запрещено.'
                 )
-            elif not self.instance:
+            if not self.instance:
                 raise serializers.ValidationError(
                     'Имя пользователя "me" запрещено.'
                 )
@@ -103,6 +103,13 @@ class SetPasswordSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
         fields = ('current_password', 'new_password',)
+
+    def validate(self, data):
+        if data['new_password'] == data['current_password']:
+            raise serializers.ValidationError(
+                "Старый и новый пароли не должны совпадать!"
+            )
+        return data
 
 
 class ShowSubscriptionsSerializer(serializers.ModelSerializer):
@@ -252,10 +259,9 @@ class CreateRecipeSerializer(serializers.ModelSerializer):
         fields = ('id', 'tags', 'author', 'name', 'text', 'image',
                   'ingredients', 'cooking_time',)
 
-    def validate(self, data):
-        ingredients = self.initial_data.get('ingredients')
+    def validate_ingredients(self, value):
         list = []
-        for ingredient in ingredients:
+        for ingredient in value:
             amount = ingredient['amount']
             if int(amount) < 1:
                 raise serializers.ValidationError({
@@ -266,7 +272,17 @@ class CreateRecipeSerializer(serializers.ModelSerializer):
                     'ingredient': 'Нельзя повторять ингридиенты'
                 })
             list.append(ingredient['id'])
-        return data
+        return value
+
+    def validate_tags(self, value):
+        list = []
+        for tag in value:
+            if tag['id'] in list:
+                raise serializers.ValidationError({
+                    'ingredient': 'Нельзя повторять ингридиенты'
+                })
+            list.append(tag['id'])
+        return value
 
     def create_ingredients(self, ingredients, recipe):
         for ingredient in ingredients:
@@ -309,6 +325,25 @@ class CreateRecipeSerializer(serializers.ModelSerializer):
         return RecipeSerializer(instance, context={
             'request': self.context.get('request')
         }).data
+
+
+"""
+    def validate(self, data):
+        ingredients = self.initial_data.get('ingredients')
+        list = []
+        for ingredient in ingredients:
+            amount = ingredient['amount']
+            if int(amount) < 1:
+                raise serializers.ValidationError({
+                    'amount': 'Невозможно указать количество меньше 1'
+                })
+            if ingredient['id'] in list:
+                raise serializers.ValidationError({
+                    'ingredient': 'Нельзя повторять ингридиенты'
+                })
+            list.append(ingredient['id'])
+        return data
+"""
 
 
 class ShowFavoriteSerializer(serializers.ModelSerializer):

@@ -1,5 +1,4 @@
 from django.db import models
-from django.core.validators import RegexValidator
 from django.contrib.auth import get_user_model
 from django.db.models import UniqueConstraint
 from django.core.validators import MinValueValidator
@@ -9,28 +8,6 @@ User = get_user_model()
 
 class Ingredient(models.Model):
     """Модель для ингридиентов."""
-
-    LIST_OF_UNITS = (
-        ('мл', 'миллилитр'),
-        ('г', 'грамм'),
-        ('по вкусу', 'по вкусу'),
-        ('стакан', 'стакан 300 мл'),
-        ('л', 'литр'),
-        ('горсть', 'горсть'),
-        ('кг', 'килограммы'),
-        ('пакет', 'пакет'),
-        ('пучок', 'пучок'),
-        ('кусок', 'кусок'),
-        ('капля', 'капля'),
-        ('щепотка', 'щепотка'),
-        ('долька', 'долька'),
-        ('банка', 'банка'),
-        ('упаковка', 'упаковка'),
-        ('ч. л.', 'чайная ложка'),
-        ('ст. л.', 'столовая ложка'),
-        ('веточка', 'веточка'),
-        ('шт.', 'штука')
-    )
 
     name = models.CharField(
         max_length=200,
@@ -76,8 +53,7 @@ class Tag(models.Model):
         verbose_name='Slug',
         help_text='Укажите slug',
         unique=True,
-        max_length=200,
-        validators=([RegexValidator(regex=r'^[-a-zA-Z0-9_]+$')])
+        max_length=200
     )
 
     class Meta:
@@ -101,7 +77,7 @@ class Recipe(models.Model):
         verbose_name='Дата публикации',
         auto_now_add=True
     )
-    cooking_time = models.PositiveIntegerField(
+    cooking_time = models.PositiveSmallIntegerField(
         verbose_name='Время приготовления (в минутах)',
         help_text='Укажите время приготовления (в минутах)',
         validators=[MinValueValidator(
@@ -156,7 +132,13 @@ class RecipeIngredient(models.Model):
         Ingredient,
         on_delete=models.CASCADE
     )
-    amount = models.PositiveSmallIntegerField()
+    amount = models.PositiveSmallIntegerField(
+        validators=[MinValueValidator(
+            1,
+            message=('Количество ингридиента измеряется целыми числами'
+                     + 'и не может быть меньше 1!')
+        )]
+    )
 
     class Meta:
         constraints = [
