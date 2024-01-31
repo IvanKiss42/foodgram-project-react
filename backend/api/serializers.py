@@ -46,13 +46,16 @@ class UserCreateSerializer(serializers.ModelSerializer):
         if value.lower() == 'me':
             if self.instance and self.context['request'].method == 'PATCH':
                 raise serializers.ValidationError(
-                    'Имя пользователя "me" запрещено.'
+                    'Имя пользователя "me" запрещено!'
                 )
             if not self.instance:
                 raise serializers.ValidationError(
-                    'Имя пользователя "me" запрещено.'
+                    'Имя пользователя "me" запрещено!'
                 )
         return value
+
+    def create(self, validated_data):
+        return User.objects.create(**validated_data)
 
 
 class UserPresentationAfterCreateSerializer(serializers.ModelSerializer):
@@ -269,7 +272,7 @@ class CreateRecipeSerializer(serializers.ModelSerializer):
                 })
             if ingredient['id'] in list:
                 raise serializers.ValidationError({
-                    'ingredient': 'Нельзя повторять ингридиенты'
+                    'ingredient': 'Нельзя повторять ингридиенты!'
                 })
             list.append(ingredient['id'])
         return value
@@ -277,11 +280,11 @@ class CreateRecipeSerializer(serializers.ModelSerializer):
     def validate_tags(self, value):
         list = []
         for tag in value:
-            if tag['id'] in list:
+            if tag in list:
                 raise serializers.ValidationError({
-                    'ingredient': 'Нельзя повторять ингридиенты'
+                    'ingredient': 'Нельзя повторять тэги!'
                 })
-            list.append(tag['id'])
+            list.append(tag)
         return value
 
     def create_ingredients(self, ingredients, recipe):
@@ -325,25 +328,6 @@ class CreateRecipeSerializer(serializers.ModelSerializer):
         return RecipeSerializer(instance, context={
             'request': self.context.get('request')
         }).data
-
-
-"""
-    def validate(self, data):
-        ingredients = self.initial_data.get('ingredients')
-        list = []
-        for ingredient in ingredients:
-            amount = ingredient['amount']
-            if int(amount) < 1:
-                raise serializers.ValidationError({
-                    'amount': 'Невозможно указать количество меньше 1'
-                })
-            if ingredient['id'] in list:
-                raise serializers.ValidationError({
-                    'ingredient': 'Нельзя повторять ингридиенты'
-                })
-            list.append(ingredient['id'])
-        return data
-"""
 
 
 class ShowFavoriteSerializer(serializers.ModelSerializer):

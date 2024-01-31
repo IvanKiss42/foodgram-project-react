@@ -70,6 +70,7 @@ WSGI_APPLICATION = 'backend.wsgi.application'
 # https://docs.djangoproject.com/en/3.2/ref/settings/#databases
 
 """
+Для локальных тестов
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.sqlite3',

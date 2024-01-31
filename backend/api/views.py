@@ -10,7 +10,6 @@ from rest_framework.exceptions import ValidationError
 from rest_framework.decorators import action
 from rest_framework.pagination import LimitOffsetPagination
 from django.shortcuts import get_object_or_404
-from django.db import IntegrityError
 from rest_framework.authtoken.models import Token
 
 from .permissions import IsAuthorAdminSuperuserOrReadOnlyPermission
@@ -49,31 +48,7 @@ class UsersView(viewsets.ModelViewSet):
 
         serializer = UserCreateSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
-        username = serializer.validated_data.get('username')
-        email = serializer.validated_data.get('email')
-
-        try:
-            user, created = User.objects.get_or_create(
-                username=username,
-                email=email,
-                last_name=serializer.validated_data.get('last_name'),
-                first_name=serializer.validated_data.get('last_name'),
-                password=serializer.validated_data.get('password'),
-            )
-        except IntegrityError:
-            existing_user = User.objects.filter(username=username).first()
-            existing_email = User.objects.filter(email=email).first()
-
-            error_response = {}
-
-            if existing_user:
-                error_response['username'] = ["Такой логин уже существует"]
-
-            if existing_email:
-                error_response['email'] = ["Такой email уже существует"]
-
-            return Response(error_response, status=status.HTTP_400_BAD_REQUEST)
-        user.save()
+        user = serializer.create(request.data)
         serializer_for_response = UserPresentationAfterCreateSerializer(user)
         return Response(serializer_for_response.data,
                         status=status.HTTP_201_CREATED)
