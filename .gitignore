@@ -134,3 +134,7 @@ dmypy.json
 # React frontend
 node_modules/
 .node_modules
+
+# media
+.png
+backend/media
