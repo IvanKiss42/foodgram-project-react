@@ -1,6 +1,6 @@
 import base64
 from django.core.files.base import ContentFile
-from django.core.validators import MaxLengthValidator
+from django.shortcuts import get_object_or_404
 from rest_framework import serializers
 from rest_framework.validators import UniqueTogetherValidator
 
@@ -96,12 +96,10 @@ class SetPasswordSerializer(serializers.ModelSerializer):
     """Сериализатор для смены пароля."""
     current_password = serializers.CharField(
         max_length=50,
-        required=True,
-        validators=[MaxLengthValidator(limit_value=50)])
+        required=True)
     new_password = serializers.CharField(
         max_length=50,
-        required=True,
-        validators=[MaxLengthValidator(limit_value=50)])
+        required=True)
 
     class Meta:
         model = User
@@ -263,9 +261,16 @@ class CreateRecipeSerializer(serializers.ModelSerializer):
                   'ingredients', 'cooking_time',)
 
     def validate_ingredients(self, value):
+        if not value:
+            raise serializers.ValidationError({
+                'ingredients': 'Необходимо указать ингридиенты'
+            })
         list = []
         for ingredient in value:
             amount = ingredient['amount']
+            get_object_or_404(
+                Ingredient.objects.filter(id=ingredient['id'])
+            )
             if int(amount) < 1:
                 raise serializers.ValidationError({
                     'amount': 'Невозможно указать количество меньше 1'
@@ -278,6 +283,10 @@ class CreateRecipeSerializer(serializers.ModelSerializer):
         return value
 
     def validate_tags(self, value):
+        if not value:
+            raise serializers.ValidationError({
+                'ingredients': 'Необходимо указать минимум один тэг'
+            })
         list = []
         for tag in value:
             if tag in list:
@@ -288,13 +297,15 @@ class CreateRecipeSerializer(serializers.ModelSerializer):
         return value
 
     def create_ingredients(self, ingredients, recipe):
-        for ingredient in ingredients:
-            certain_ingredient = Ingredient.objects.get(id=ingredient['id'])
-            RecipeIngredient.objects.create(
-                ingredient=certain_ingredient,
+        ingredient_list = []
+        for i in ingredients:
+            Ingredient.objects.get(id=i['id'])
+            ingredient_list.append(RecipeIngredient(
+                ingredient=Ingredient.objects.get(id=i['id']),
                 recipe=recipe,
-                amount=ingredient['amount']
-            )
+                amount=i['amount']
+            ))
+        RecipeIngredient.objects.bulk_create(ingredient_list)
 
     def create_tags(self, tags, recipe):
         for tag in tags:

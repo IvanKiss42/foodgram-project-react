@@ -9,7 +9,6 @@ class IngredientFilter(SearchFilter):
 
 
 class RecipeFilter(rest_framework.FilterSet):
-    author = rest_framework.CharFilter()
     tags = rest_framework.ModelMultipleChoiceFilter(
         field_name='tags__slug',
         queryset=Tag.objects.all(),

@@ -2,8 +2,6 @@ from django.db.models import Sum
 from django.http import HttpResponse
 from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework.response import Response
-from rest_framework.views import APIView
-from rest_framework.generics import ListAPIView
 from rest_framework import permissions, status, viewsets
 from rest_framework.exceptions import ValidationError
 from rest_framework.decorators import action
@@ -82,6 +80,49 @@ class UsersView(viewsets.ModelViewSet):
             return Response(status=status.HTTP_400_BAD_REQUEST)
         return Response(status=status.HTTP_204_NO_CONTENT)
 
+    @action(
+        detail=True,
+        methods=['post', 'delete'],
+        permission_classes=(permissions.IsAuthenticated,))
+    def subscribe(self, request, id):
+        if request.method == 'POST':
+            data = {
+                'user': request.user.id,
+                'author': id
+            }
+            serializer = SubscriptionSerializer(
+                data=data,
+                context={'request': request}
+            )
+            if serializer.is_valid():
+                serializer.save()
+                return Response(serializer.data,
+                                status=status.HTTP_201_CREATED)
+            return Response(status=status.HTTP_400_BAD_REQUEST)
+        else:
+            author = get_object_or_404(User, id=id)
+            if Subscription.objects.filter(
+               user=request.user, author=author).exists():
+                subscription = get_object_or_404(
+                    Subscription, user=request.user, author=author
+                )
+                subscription.delete()
+                return Response(status=status.HTTP_204_NO_CONTENT)
+            return Response(status=status.HTTP_400_BAD_REQUEST)
+
+    @action(
+        detail=False,
+        methods=['get', ],
+        permission_classes=(permissions.IsAuthenticated,))
+    def subscriptions(self, request):
+        user = request.user
+        queryset = User.objects.filter(author__user=user)
+        page = self.paginate_queryset(queryset)
+        serializer = ShowSubscriptionsSerializer(
+            page, many=True, context={'request': request}
+        )
+        return self.get_paginated_response(serializer.data)
+
 
 class TokenLoginView(viewsets.ModelViewSet):
     """ViewSet для получения логина."""
@@ -102,65 +143,6 @@ class TokenLoginView(viewsets.ModelViewSet):
         token = Token.objects.create(user=user)
         return Response({'auth_token': str(token)},
                         status=status.HTTP_201_CREATED)
-
-
-"""
-проблема с CSRF (CSRF cookie not set.)
-class SubscribtionMixinView(mixins.DestroyModelMixin, mixins.CreateModelMixin,
-                            viewsets.GenericViewSet):
-    permission_classes = (permissions.IsAuthenticated,)
-    pagination_class = LimitOffsetPagination
-    queryset = Subscription.objects.all()
-    serializer_class = SubscriptionSerializer
-"""
-
-
-class SubscribeView(APIView):
-    """ViewSet для создания и удаления подписок."""
-
-    permission_classes = (permissions.IsAuthenticated,)
-    pagination_class = LimitOffsetPagination
-
-    def post(self, request, id):
-        data = {
-            'user': request.user.id,
-            'author': id
-        }
-        serializer = SubscriptionSerializer(
-            data=data,
-            context={'request': request}
-        )
-        if serializer.is_valid():
-            serializer.save()
-            return Response(serializer.data, status=status.HTTP_201_CREATED)
-        return Response(status=status.HTTP_400_BAD_REQUEST)
-
-    def delete(self, request, id):
-        author = get_object_or_404(User, id=id)
-        if Subscription.objects.filter(
-           user=request.user, author=author).exists():
-            subscription = get_object_or_404(
-                Subscription, user=request.user, author=author
-            )
-            subscription.delete()
-            return Response(status=status.HTTP_204_NO_CONTENT)
-        return Response(status=status.HTTP_400_BAD_REQUEST)
-
-
-class ShowSubscriptionsView(ListAPIView):
-    """ViewSet для отображения подписок."""
-
-    permission_classes = (permissions.IsAuthenticated,)
-    pagination_class = LimitOffsetPagination
-
-    def get(self, request):
-        user = request.user
-        queryset = User.objects.filter(author__user=user)
-        page = self.paginate_queryset(queryset)
-        serializer = ShowSubscriptionsSerializer(
-            page, many=True, context={'request': request}
-        )
-        return self.get_paginated_response(serializer.data)
 
 
 class RecipeView(viewsets.ModelViewSet):
