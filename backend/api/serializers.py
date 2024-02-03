@@ -265,7 +265,7 @@ class CreateRecipeSerializer(serializers.ModelSerializer):
             raise serializers.ValidationError({
                 'ingredients': 'Необходимо указать ингридиенты'
             })
-        list = []
+        ingredients = []
         for ingredient in value:
             amount = ingredient['amount']
             get_object_or_404(
@@ -275,11 +275,11 @@ class CreateRecipeSerializer(serializers.ModelSerializer):
                 raise serializers.ValidationError({
                     'amount': 'Невозможно указать количество меньше 1'
                 })
-            if ingredient['id'] in list:
+            if ingredient['id'] in ingredients:
                 raise serializers.ValidationError({
                     'ingredient': 'Нельзя повторять ингридиенты!'
                 })
-            list.append(ingredient['id'])
+            ingredients.append(ingredient['id'])
         return value
 
     def validate_tags(self, value):
@@ -287,13 +287,13 @@ class CreateRecipeSerializer(serializers.ModelSerializer):
             raise serializers.ValidationError({
                 'ingredients': 'Необходимо указать минимум один тэг'
             })
-        list = []
+        tags = []
         for tag in value:
-            if tag in list:
+            if tag in tags:
                 raise serializers.ValidationError({
                     'ingredient': 'Нельзя повторять тэги!'
                 })
-            list.append(tag)
+            tags.append(tag)
         return value
 
     def create_ingredients(self, ingredients, recipe):

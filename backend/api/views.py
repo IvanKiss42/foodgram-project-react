@@ -82,7 +82,7 @@ class UsersView(viewsets.ModelViewSet):
 
     @action(
         detail=True,
-        methods=['post', 'delete'],
+        methods=['post', 'delete', ],
         permission_classes=(permissions.IsAuthenticated,))
     def subscribe(self, request, id):
         if request.method == 'POST':
